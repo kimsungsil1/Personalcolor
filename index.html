@@ -12,27 +12,42 @@
             max-width: 500px;
             margin: auto;
         }
-        #canvasContainer {
-            position: relative;
-            display: inline-block;
-        }
-        #canvas {
-            border-radius: 10px;
+        #canvas { display: none; }
+        #colorResult { margin-top: 20px; font-size: 1.2em; }
+        #colorDisplay {
+            width: 100px;
+            height: 100px;
+            margin: 20px auto;
+            border-radius: 50%;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
-        #colorResult { margin-top: 20px; font-size: 1.2em; }
         #loading { display: none; font-size: 1em; color: #555; }
+        #description, #reasons, #effect { margin-top: 10px; font-size: 0.9em; color: #555; }
+        .button {
+            display: inline-block;
+            padding: 10px 20px;
+            margin: 5px;
+            background-color: #1E90FF;
+            color: #fff;
+            border-radius: 5px;
+            text-decoration: none;
+            font-size: 0.9em;
+        }
     </style>
 </head>
 <body>
     <h1>퍼스널 컬러 분석</h1>
-    <p>셀카 사진을 업로드하면 추천 컬러를 배경에 적용해드립니다.</p>
+    <p>얼굴 사진을 업로드하여 퍼스널 컬러를 확인하세요.</p>
     <input type="file" id="imageInput" accept="image/*" style="margin-top: 10px;">
     <div id="loading">분석 중입니다... 잠시만 기다려주세요.</div>
-    <div id="canvasContainer">
-        <canvas id="canvas"></canvas>
-    </div>
+    <canvas id="canvas"></canvas>
     <div id="colorResult">사진을 업로드하여 퍼스널 컬러를 확인하세요.</div>
+    <div id="colorDisplay"></div>
+    <div id="description"></div>
+    <div id="reasons"></div>
+    <div id="effect"></div>
+    <a href="#" id="saveResult" class="button" style="display:none;">결과 저장하기</a>
+    <a href="#" id="shareResult" class="button" style="display:none;">결과 공유하기</a>
 
     <script>
         document.getElementById('imageInput').addEventListener('change', function(event) {
@@ -53,15 +68,30 @@
 
                 const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
                 const skinColor = getAverageColor(imgData);
-                const { season, color } = getPersonalColorType(skinColor);
+                const { season, color, description } = getPersonalColorType(skinColor);
 
                 document.getElementById('loading').style.display = 'none';
-                document.getElementById('colorResult').innerText = `추천 퍼스널 컬러: ${season}`;
-                
-                // 배경색을 추천 색상으로 설정
-                ctx.globalCompositeOperation = 'destination-over';
-                ctx.fillStyle = color;
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                document.getElementById('colorResult').innerText = `당신의 퍼스널 컬러: ${season}`;
+                document.getElementById('colorDisplay').style.backgroundColor = color;
+                document.getElementById('description').innerText = description;
+                document.getElementById('reasons').innerText = "이 추천은 고객의 피부 톤과 가장 잘 어울리는 색상을 분석하여 최적의 컬러를 제안합니다. 색상 추천 알고리즘을 통해 정확성을 높였으며, 고객님의 외모를 자연스럽게 돋보이게 합니다.";
+                document.getElementById('effect').innerText = "이 색상은 고객님의 피부 톤을 밝게 만들어주며, 스타일링에 유용하게 적용할 수 있습니다. 추천된 컬러로 메이크업이나 의상에 응용하면 더욱 자신감 있는 모습을 연출할 수 있습니다.";
+                document.getElementById('saveResult').style.display = 'inline-block';
+                document.getElementById('shareResult').style.display = 'inline-block';
+
+                document.getElementById('saveResult').onclick = function() {
+                    const result = `당신의 퍼스널 컬러: ${season}\n추천 색상: ${color}\n설명: ${description}`;
+                    const blob = new Blob([result], { type: 'text/plain' });
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = 'personal_color_result.txt';
+                    link.click();
+                };
+
+                document.getElementById('shareResult').onclick = function() {
+                    alert("결과를 공유하려면 링크를 복사하거나 SNS에서 공유하세요.");
+                };
             };
         });
 
@@ -79,10 +109,10 @@
 
         function getPersonalColorType(color) {
             const { r, g, b } = color;
-            if (r > 200 && g > 170) return { season: "봄웜톤", color: "#FFD700" };
-            if (r > 180 && b > 150) return { season: "여름쿨톤", color: "#87CEEB" };
-            if (r > 160 && g > 120) return { season: "가을웜톤", color: "#D2691E" };
-            return { season: "겨울쿨톤", color: "#1E90FF" };
+            if (r > 200 && g > 170) return { season: "봄웜톤", color: "#FFD700", description: "밝고 따뜻한 컬러로 생동감을 더해줍니다." };
+            if (r > 180 && b > 150) return { season: "여름쿨톤", color: "#87CEEB", description: "부드럽고 차분한 파스텔 계열의 컬러가 어울립니다." };
+            if (r > 160 && g > 120) return { season: "가을웜톤", color: "#D2691E", description: "따뜻하고 깊이감 있는 컬러가 잘 어울립니다." };
+            return { season: "겨울쿨톤", color: "#1E90FF", description: "강렬하고 대비가 큰 색상이 잘 어울립니다." };
         }
     </script>
 </body>
