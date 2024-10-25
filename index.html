@@ -5,23 +5,42 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>퍼스널 컬러 분석</title>
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; padding: 20px; }
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+            max-width: 500px;
+            margin: auto;
+        }
         #canvas { display: none; }
         #colorResult { margin-top: 20px; font-size: 1.2em; }
-        #colorDisplay { width: 100px; height: 100px; margin-top: 10px; border-radius: 50%; }
+        #colorDisplay {
+            width: 100px;
+            height: 100px;
+            margin: 20px auto;
+            border-radius: 50%;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        #loading { display: none; }
+        #description { margin-top: 10px; font-size: 0.9em; color: #555; }
     </style>
 </head>
 <body>
     <h1>퍼스널 컬러 분석</h1>
-    <input type="file" id="imageInput" accept="image/*">
+    <p>얼굴 사진을 업로드하면 나와 어울리는 퍼스널 컬러를 추천해드립니다.</p>
+    <input type="file" id="imageInput" accept="image/*" style="margin-top: 10px;">
+    <div id="loading">분석 중입니다... 잠시만 기다려주세요.</div>
     <canvas id="canvas"></canvas>
     <div id="colorResult">사진을 업로드하여 퍼스널 컬러를 확인하세요.</div>
     <div id="colorDisplay"></div>
+    <div id="description"></div>
 
     <script>
         document.getElementById('imageInput').addEventListener('change', function(event) {
             const file = event.target.files[0];
             if (!file) return;
+
+            document.getElementById('loading').style.display = 'block';
 
             const img = new Image();
             img.src = URL.createObjectURL(file);
@@ -35,14 +54,15 @@
 
                 const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
                 const skinColor = getAverageColor(imgData);
-                const { season, color } = getPersonalColorType(skinColor);
+                const { season, color, description } = getPersonalColorType(skinColor);
 
+                document.getElementById('loading').style.display = 'none';
                 document.getElementById('colorResult').innerText = `당신의 퍼스널 컬러: ${season}`;
                 document.getElementById('colorDisplay').style.backgroundColor = color;
+                document.getElementById('description').innerText = description;
             };
         });
 
-        // 얼굴 피부 평균 색상 계산 함수
         function getAverageColor(imgData) {
             const { data } = imgData;
             let r = 0, g = 0, b = 0, count = 0;
@@ -55,13 +75,12 @@
             return { r: Math.floor(r / count), g: Math.floor(g / count), b: Math.floor(b / count) };
         }
 
-        // 퍼스널 컬러 타입 결정 함수 (색상 코드 추가)
         function getPersonalColorType(color) {
             const { r, g, b } = color;
-            if (r > 200 && g > 170) return { season: "봄웜톤", color: "#FFD700" };  // 금색
-            if (r > 180 && b > 150) return { season: "여름쿨톤", color: "#87CEEB" }; // 하늘색
-            if (r > 160 && g > 120) return { season: "가을웜톤", color: "#D2691E" }; // 갈색
-            return { season: "겨울쿨톤", color: "#1E90FF" };                         // 진파랑색
+            if (r > 200 && g > 170) return { season: "봄웜톤", color: "#FFD700", description: "밝고 따뜻한 컬러로 생동감을 더해줍니다." };
+            if (r > 180 && b > 150) return { season: "여름쿨톤", color: "#87CEEB", description: "부드럽고 차분한 파스텔 계열의 컬러가 어울립니다." };
+            if (r > 160 && g > 120) return { season: "가을웜톤", color: "#D2691E", description: "따뜻하고 깊이감 있는 컬러가 잘 어울립니다." };
+            return { season: "겨울쿨톤", color: "#1E90FF", description: "강렬하고 대비가 큰 색상이 잘 어울립니다." };
         }
     </script>
 </body>
