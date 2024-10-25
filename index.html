@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personal Color Analysis</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; padding: 20px; }
+        #canvas { display: none; }
+        #colorResult { margin-top: 20px; font-size: 1.2em; }
+    </style>
+</head>
+<body>
+    <h1>Personal Color Analysis</h1>
+    <input type="file" id="imageInput" accept="image/*">
+    <canvas id="canvas"></canvas>
+    <div id="colorResult">Upload a photo to get your personal color recommendation.</div>
+
+    <script>
+        document.getElementById('imageInput').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const img = new Image();
+            img.src = URL.createObjectURL(file);
+
+            img.onload = function() {
+                const canvas = document.getElementById('canvas');
+                const ctx = canvas.getContext('2d');
+                canvas.width = img.width;
+                canvas.height = img.height;
+                ctx.drawImage(img, 0, 0);
+
+                const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                const skinColor = getAverageColor(imgData);
+                const season = getPersonalColorType(skinColor);
+                
+                document.getElementById('colorResult').innerText = `Your Personal Color: ${season} (RGB: ${skinColor.r}, ${skinColor.g}, ${skinColor.b})`;
+            };
+        });
+
+        // Calculate the average color of the face (simplified for demo purposes)
+        function getAverageColor(imgData) {
+            const { data } = imgData;
+            let r = 0, g = 0, b = 0, count = 0;
+            for (let i = 0; i < data.length; i += 4) {
+                r += data[i];
+                g += data[i + 1];
+                b += data[i + 2];
+                count++;
+            }
+            return { r: Math.floor(r / count), g: Math.floor(g / count), b: Math.floor(b / count) };
+        }
+
+        // Determine personal color type based on average skin color (very basic logic)
+        function getPersonalColorType(color) {
+            const { r, g, b } = color;
+            if (r > 200 && g > 170) return "Spring";
+            if (r > 180 && b > 150) return "Summer";
+            if (r > 160 && g > 120) return "Autumn";
+            return "Winter";
+        }
+    </script>
+</body>
+</html>
